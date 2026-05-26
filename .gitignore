@@ -1,0 +1,54 @@
+# ========================
+# Environment / Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+*.env
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+*.log
+
+# ========================
+# Local Vector Store
+# (generated at runtime)
+# ========================
+backend/local_vector_store.json
+backend/document_registry.json
+backend/chroma_store/
+
+# ========================
+# Node / Frontend
+# ========================
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/build/
+
+# ========================
+# OS & Editor
+# ========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
