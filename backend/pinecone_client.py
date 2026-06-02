@@ -126,7 +126,7 @@ if USE_LOCAL:
 else:
     from pinecone import Pinecone, ServerlessSpec
 
-    _PINECONE_INDEX = os.getenv("PINECONE_INDEX_NAME", "finsight-rag")
+    _PINECONE_INDEX = os.getenv("PINECONE_INDEX_NAME", "finsight-rag-384")
     _PINECONE_ENV = os.getenv("PINECONE_ENVIRONMENT", "us-east-1")
 
     _pc: Optional[Any] = None
@@ -141,7 +141,7 @@ else:
         if _PINECONE_INDEX not in existing:
             _pc.create_index(
                 name=_PINECONE_INDEX,
-                dimension=1536,
+                dimension=384,
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region=_PINECONE_ENV),
             )

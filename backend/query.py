@@ -14,18 +14,19 @@ import logging
 from typing import List, Dict, Any, Optional
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from fastembed import TextEmbedding
+from groq import Groq
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-EMBED_MODEL = "text-embedding-3-small"
-CHAT_MODEL = "gpt-4o"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+CHAT_MODEL = "llama3-8b-8192"
 TOP_K = 5
 
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+groq_client = Groq(api_key=GROQ_API_KEY)
+embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 SYSTEM_PROMPT = """You are FinSight, an expert financial document analyst.
 Answer ONLY based on the provided context excerpts from financial documents.
@@ -85,8 +86,8 @@ def query_documents(
         }
 
     # 1. Embed the question
-    resp = openai_client.embeddings.create(model=EMBED_MODEL, input=[question])
-    question_embedding = resp.data[0].embedding
+    embeddings = list(embedding_model.embed([question]))
+    question_embedding = embeddings[0].tolist()
 
     # 2. Query vector store
     filter_meta = {"doc_id": {"$eq": filter_doc_id}} if filter_doc_id else None
@@ -132,13 +133,13 @@ def query_documents(
 
     context = "\n\n---\n\n".join(context_parts)
 
-    # 4. Call GPT-4o
+    # 4. Call Groq API for LLM response
     user_message = (
         f"Context from financial documents:\n\n{context}\n\n"
         f"Question: {question}"
     )
 
-    chat_resp = openai_client.chat.completions.create(
+    chat_resp = groq_client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},

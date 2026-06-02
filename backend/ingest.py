@@ -17,18 +17,18 @@ from typing import List, Dict, Any, Tuple
 
 import tiktoken
 from dotenv import load_dotenv
-from openai import OpenAI
+from fastembed import TextEmbedding
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-EMBED_MODEL = "text-embedding-3-small"
 CHUNK_SIZE = 512   # tokens
 CHUNK_OVERLAP = 50  # tokens
 
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+# Initialize FastEmbed (downloads model if not cached, runs on CPU locally)
+embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
 
@@ -123,18 +123,12 @@ def chunk_text(text: str) -> List[str]:
 
 def embed_texts(texts: List[str]) -> List[List[float]]:
     """
-    Call OpenAI Embeddings API in batches of 100.
+    Generate local embeddings using FastEmbed.
     Returns list of embedding vectors.
     """
-    all_embeddings: List[List[float]] = []
-    batch_size = 100
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i : i + batch_size]
-        response = openai_client.embeddings.create(
-            model=EMBED_MODEL, input=batch
-        )
-        all_embeddings.extend([d.embedding for d in response.data])
-    return all_embeddings
+    logger.info(f"Generating local embeddings for {len(texts)} chunks...")
+    embeddings = list(embedding_model.embed(texts))
+    return [e.tolist() for e in embeddings]
 
 
 # ---------------------------------------------------------------------------
