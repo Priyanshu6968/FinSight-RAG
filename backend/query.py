@@ -22,7 +22,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-CHAT_MODEL = "llama3-8b-8192"
+CHAT_MODEL = "llama-3.1-8b-instant"
 TOP_K = 5
 
 groq_client = Groq(api_key=GROQ_API_KEY)
