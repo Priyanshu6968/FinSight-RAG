@@ -2,8 +2,9 @@
 
 > Upload financial documents (PDFs, DOCX, TXT) and ask natural language questions.  
 > Every answer is grounded in your documents and includes source citations.
+> Features a new dual-mode engine: Fast responses or High-Accuracy Cohere reranking.
 
-![Tech Stack](https://img.shields.io/badge/Groq-LangChain-blue?style=flat-square)
+![Tech Stack](https://img.shields.io/badge/Groq-Cohere-blue?style=flat-square)
 ![Vector DB](https://img.shields.io/badge/Pinecone-ChromaDB-green?style=flat-square)
 ![Frontend](https://img.shields.io/badge/React-TailwindCSS-purple?style=flat-square)
 ![Backend](https://img.shields.io/badge/FastAPI-Python-orange?style=flat-square)
@@ -16,6 +17,7 @@
 - **Intelligent Chunking** — 512-token chunks with 50-token overlap
 - **FastEmbed Embeddings** — `BAAI/bge-small-en-v1.5` for semantic search
 - **Grounded Q&A** — Groq (Llama 3.1) answers strictly from your document context
+- **Fast & Accurate Modes** — Choose between instantaneous retrieval ("Fast") or advanced semantic reranking using Cohere's API ("Accurate") for complex queries.
 - **Source Citations** — Every answer shows the filename + page number
 - **Confidence Scores** — High / Medium / Low based on cosine similarity
 - **Dual Vector DB** — Pinecone (cloud) or ChromaDB (local fallback)
@@ -30,7 +32,7 @@ finsight-rag/
 ├── backend/
 │   ├── main.py              # FastAPI app (routes, CORS, registry)
 │   ├── ingest.py            # Parse → chunk → embed → store pipeline
-│   ├── query.py             # RAG query pipeline (embed → search → Groq)
+│   ├── query.py             # RAG query pipeline (embed → search → Cohere rerank → Groq)
 │   ├── pinecone_client.py   # Pinecone / ChromaDB dual backend
 │   └── requirements.txt     # Python dependencies
 ├── frontend/
@@ -44,7 +46,7 @@ finsight-rag/
 │   │   │   └── api.js       # Axios API service layer
 │   │   └── components/
 │   │       ├── UploadPanel.jsx   # Drag-and-drop upload + document list
-│   │       ├── ChatPanel.jsx     # Q&A chat interface
+│   │       ├── ChatPanel.jsx     # Q&A chat interface (with Fast/Accurate toggle)
 │   │       └── AnswerCard.jsx    # Answer + sources + confidence display
 │   ├── index.html
 │   ├── package.json
@@ -62,6 +64,7 @@ finsight-rag/
 - **Python 3.10+**
 - **Node.js 18+** and **npm**
 - **Groq API key** — [console.groq.com](https://console.groq.com)
+- **Cohere API key** — [dashboard.cohere.com](https://dashboard.cohere.com)
 - **Pinecone API key** (optional, or use ChromaDB) — [pinecone.io](https://pinecone.io)
 
 ---
@@ -84,6 +87,7 @@ cp .env.example backend/.env
 Edit `backend/.env`:
 ```env
 GROQ_API_KEY=gsk-...
+COHERE_API_KEY=cohere_...
 PINECONE_API_KEY=...
 PINECONE_ENVIRONMENT=us-east-1
 PINECONE_INDEX_NAME=finsight-rag-384
@@ -162,7 +166,11 @@ Response: { doc_id, filename, total_chunks, message }
 ### `POST /query`
 Ask a question and get a grounded answer.
 ```json
-{ "question": "What is the net profit?", "filter_doc_id": null }
+{ 
+  "question": "What is the net profit?", 
+  "filter_doc_id": null,
+  "mode": "accurate" 
+}
 
 Response: { "answer": "...", "sources": [...], "confidence": "high", "avg_score": 0.87 }
 ```
@@ -185,7 +193,7 @@ Response: { "success": true, "filename": "...", "message": "..." }
 
 - **Theme**: Dark navy + gold accent (finance-grade aesthetic)
 - **Left Panel**: Drag-and-drop upload area + indexed document list
-- **Right Panel**: Chat interface with message history
+- **Right Panel**: Chat interface with message history and Fast/Accurate modes toggle
 - **Answer Cards**: Answer text + source badges + confidence bar
 - **Glassmorphism**: Frosted glass panels with subtle borders
 - **Animations**: Slide-up entries, shimmer loading, pulse indicators
@@ -199,6 +207,7 @@ The system prompt enforces strict document-grounded answers:
 > *"Answer ONLY based on the provided context excerpts. If the answer is not present in the context, respond with 'I could not find this in the uploaded documents.'"*
 
 Groq (Llama 3.1) is called with `temperature=0.1` to minimise hallucination.
+When "Accurate" mode is used, Cohere's `rerank-english-v3.0` ensures only the most semantically relevant top 5 chunks out of the top 20 Pinecone hits are passed into the LLM context.
 
 ---
 
@@ -207,6 +216,7 @@ Groq (Llama 3.1) is called with `temperature=0.1` to minimise hallucination.
 | Variable | Default | Description |
 |---|---|---|
 | `GROQ_API_KEY` | — | Required for Llama 3.1 inference |
+| `COHERE_API_KEY`| — | Required for accurate reranking |
 | `PINECONE_API_KEY` | — | Required if `USE_CHROMA=false` |
 | `PINECONE_ENVIRONMENT` | `us-east-1` | Pinecone region |
 | `PINECONE_INDEX_NAME` | `finsight-rag-384` | Pinecone index name |
