@@ -21,8 +21,8 @@ export const uploadDocument = async (file, onProgress) => {
   return response.data
 }
 
-export const queryDocuments = async (question, filterDocId = null) => {
-  const payload = { question }
+export const queryDocuments = async (question, filterDocId = null, mode = 'fast') => {
+  const payload = { question, mode }
   if (filterDocId) payload.filter_doc_id = filterDocId
   const response = await api.post('/query', payload)
   return response.data

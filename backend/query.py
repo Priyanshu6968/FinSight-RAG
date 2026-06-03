@@ -16,16 +16,22 @@ from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 from fastembed import TextEmbedding
 from groq import Groq
+import cohere
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY", "")
 CHAT_MODEL = "llama-3.1-8b-instant"
 TOP_K = 5
 
 groq_client = Groq(api_key=GROQ_API_KEY)
+if COHERE_API_KEY:
+    cohere_client = cohere.Client(COHERE_API_KEY)
+else:
+    cohere_client = None
 embedding_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 SYSTEM_PROMPT = """You are FinSight, an expert financial document analyst.
@@ -63,6 +69,7 @@ def score_to_confidence(avg_score: float) -> str:
 def query_documents(
     question: str,
     filter_doc_id: Optional[str] = None,
+    mode: str = "fast",
 ) -> Dict[str, Any]:
     """
     Full RAG pipeline for a given *question*.
@@ -91,9 +98,11 @@ def query_documents(
 
     # 2. Query vector store
     filter_meta = {"doc_id": {"$eq": filter_doc_id}} if filter_doc_id else None
+    
+    fetch_k = TOP_K if mode == "fast" else 20
     matches = query_vectors(
         embedding=question_embedding,
-        top_k=TOP_K,
+        top_k=fetch_k,
         filter_meta=filter_meta,
     )
 
@@ -107,6 +116,26 @@ def query_documents(
             "confidence": "low",
             "avg_score": 0.0,
         }
+
+    # 2.5 Optional Cohere Reranking
+    if mode == "accurate" and cohere_client:
+        texts_to_rerank = [m.get("metadata", {}).get("text", "") for m in matches]
+        # Only rerank if there are texts
+        if texts_to_rerank:
+            rerank_results = cohere_client.rerank(
+                model="rerank-english-v3.0",
+                query=question,
+                documents=texts_to_rerank,
+                top_n=TOP_K,
+            )
+            
+            # Reorder matches based on rerank results and update scores
+            reranked_matches = []
+            for r in rerank_results.results:
+                original_match = matches[r.index]
+                original_match["score"] = r.relevance_score
+                reranked_matches.append(original_match)
+            matches = reranked_matches
 
     # 3. Build context from retrieved chunks
     context_parts: List[str] = []

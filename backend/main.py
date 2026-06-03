@@ -74,6 +74,7 @@ _load_registry()
 class QueryRequest(BaseModel):
     question: str
     filter_doc_id: Optional[str] = None
+    mode: Optional[str] = "fast"
 
 
 class QueryResponse(BaseModel):
@@ -172,6 +173,7 @@ async def query_documents_endpoint(request: QueryRequest):
         result = query_documents(
             question=request.question,
             filter_doc_id=request.filter_doc_id,
+            mode=request.mode,
         )
         return QueryResponse(**result)
 

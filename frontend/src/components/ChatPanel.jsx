@@ -50,6 +50,7 @@ export default function ChatPanel({ documents }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [filterDoc, setFilterDoc] = useState('')
+  const [mode, setMode] = useState('fast')
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -66,7 +67,7 @@ export default function ChatPanel({ documents }) {
     setLoading(true)
 
     try {
-      const result = await queryDocuments(question, filterDoc || null)
+      const result = await queryDocuments(question, filterDoc || null, mode)
       setMessages((prev) => [
         ...prev,
         {
@@ -112,6 +113,24 @@ export default function ChatPanel({ documents }) {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Mode Toggle */}
+          <div className="flex bg-white/5 rounded-lg p-1 border border-white/5">
+            <button
+              onClick={() => setMode('fast')}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${mode === 'fast' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              title="Fast answering without reranking"
+            >
+              Fast
+            </button>
+            <button
+              onClick={() => setMode('accurate')}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${mode === 'accurate' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              title="More accurate answering with Cohere reranking"
+            >
+              Accurate
+            </button>
+          </div>
+
           {/* Document filter */}
           {documents.length > 1 && (
             <div className="relative">
