@@ -72,7 +72,7 @@ export default function App() {
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/3 border border-white/6">
               <Zap size={12} className="text-gold-400" />
-              <span className="text-xs text-slate-500">Powered by GPT-4o + RAG</span>
+              <span className="text-xs text-slate-500">Powered by Groq + RAG</span>
             </div>
             {apiOnline !== null && <StatusDot online={apiOnline} />}
           </div>
@@ -122,7 +122,7 @@ export default function App() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 py-3 px-6 text-center">
         <p className="text-xs text-slate-700">
-          FinSight RAG — Answers grounded in your documents · Built with GPT-4o + LangChain + Pinecone
+          FinSight RAG — Answers grounded in your documents · Built with Groq + FastEmbed + Pinecone
         </p>
       </footer>
     </div>

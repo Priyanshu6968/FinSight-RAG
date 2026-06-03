@@ -1,21 +1,21 @@
-# 🔍 FinSight RAG — AI-Powered Investment Document Q&A Engine
+# FinSight RAG — AI-Powered Investment Document Q&A Engine
 
 > Upload financial documents (PDFs, DOCX, TXT) and ask natural language questions.  
 > Every answer is grounded in your documents and includes source citations.
 
-![Tech Stack](https://img.shields.io/badge/GPT--4o-LangChain-blue?style=flat-square)
+![Tech Stack](https://img.shields.io/badge/Groq-LangChain-blue?style=flat-square)
 ![Vector DB](https://img.shields.io/badge/Pinecone-ChromaDB-green?style=flat-square)
 ![Frontend](https://img.shields.io/badge/React-TailwindCSS-purple?style=flat-square)
 ![Backend](https://img.shields.io/badge/FastAPI-Python-orange?style=flat-square)
 
 ---
 
-## ✨ Features
+## Features
 
 - **Document Ingestion** — PDF, DOCX, TXT via drag-and-drop upload
 - **Intelligent Chunking** — 512-token chunks with 50-token overlap
-- **OpenAI Embeddings** — `text-embedding-3-small` for semantic search
-- **Grounded Q&A** — GPT-4o answers strictly from your document context
+- **FastEmbed Embeddings** — `BAAI/bge-small-en-v1.5` for semantic search
+- **Grounded Q&A** — Groq (Llama 3.1) answers strictly from your document context
 - **Source Citations** — Every answer shows the filename + page number
 - **Confidence Scores** — High / Medium / Low based on cosine similarity
 - **Dual Vector DB** — Pinecone (cloud) or ChromaDB (local fallback)
@@ -23,14 +23,14 @@
 
 ---
 
-## 🏗 Project Structure
+## Project Structure
 
 ```
 finsight-rag/
 ├── backend/
 │   ├── main.py              # FastAPI app (routes, CORS, registry)
 │   ├── ingest.py            # Parse → chunk → embed → store pipeline
-│   ├── query.py             # RAG query pipeline (embed → search → GPT-4o)
+│   ├── query.py             # RAG query pipeline (embed → search → Groq)
 │   ├── pinecone_client.py   # Pinecone / ChromaDB dual backend
 │   └── requirements.txt     # Python dependencies
 ├── frontend/
@@ -57,16 +57,16 @@ finsight-rag/
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - **Python 3.10+**
 - **Node.js 18+** and **npm**
-- **OpenAI API key** — [platform.openai.com](https://platform.openai.com)
+- **Groq API key** — [console.groq.com](https://console.groq.com)
 - **Pinecone API key** (optional, or use ChromaDB) — [pinecone.io](https://pinecone.io)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone and configure
 
@@ -83,10 +83,10 @@ cp .env.example backend/.env
 
 Edit `backend/.env`:
 ```env
-OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk-...
 PINECONE_API_KEY=...
 PINECONE_ENVIRONMENT=us-east-1
-PINECONE_INDEX_NAME=finsight-rag
+PINECONE_INDEX_NAME=finsight-rag-384
 
 # Use ChromaDB locally (no Pinecone needed):
 # USE_CHROMA=true
@@ -138,7 +138,7 @@ The app will be available at: **http://localhost:5173**
 
 ---
 
-## 🔑 Using ChromaDB (Local, No Pinecone Required)
+## Using ChromaDB (Local, No Pinecone Required)
 
 If you don't have a Pinecone account, you can run everything locally:
 
@@ -148,7 +148,7 @@ If you don't have a Pinecone account, you can run everything locally:
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### `POST /upload`
 Upload and index a document.
@@ -181,7 +181,7 @@ Response: { "success": true, "filename": "...", "message": "..." }
 
 ---
 
-## 🎨 UI Design
+## UI Design
 
 - **Theme**: Dark navy + gold accent (finance-grade aesthetic)
 - **Left Panel**: Drag-and-drop upload area + indexed document list
@@ -192,24 +192,24 @@ Response: { "success": true, "filename": "...", "message": "..." }
 
 ---
 
-## 🛡 Grounding & Safety
+## Grounding & Safety
 
 The system prompt enforces strict document-grounded answers:
 
 > *"Answer ONLY based on the provided context excerpts. If the answer is not present in the context, respond with 'I could not find this in the uploaded documents.'"*
 
-GPT-4o is called with `temperature=0.1` to minimise hallucination.
+Groq (Llama 3.1) is called with `temperature=0.1` to minimise hallucination.
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 | Variable | Default | Description |
 |---|---|---|
-| `OPENAI_API_KEY` | — | Required for embeddings + GPT-4o |
+| `GROQ_API_KEY` | — | Required for Llama 3.1 inference |
 | `PINECONE_API_KEY` | — | Required if `USE_CHROMA=false` |
 | `PINECONE_ENVIRONMENT` | `us-east-1` | Pinecone region |
-| `PINECONE_INDEX_NAME` | `finsight-rag` | Pinecone index name |
+| `PINECONE_INDEX_NAME` | `finsight-rag-384` | Pinecone index name |
 | `USE_CHROMA` | `false` | Use local ChromaDB instead |
 
 Chunking parameters (in `backend/ingest.py`):
@@ -218,18 +218,18 @@ Chunking parameters (in `backend/ingest.py`):
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 **CORS errors** — Ensure the backend is running on port 8000 and the Vite proxy is configured.
 
 **`PINECONE_API_KEY is not set`** — Either add your key to `.env` or set `USE_CHROMA=true`.
 
-**Empty answers** — Upload documents first before querying. Ensure your OpenAI key has sufficient credits.
+**Empty answers** — Upload documents first before querying. Ensure your API key has sufficient credits.
 
 **Slow first query** — Pinecone index creation takes ~30 seconds on first run.
 
 ---
 
-## 📄 License
+## License
 
 MIT License — see [LICENSE](LICENSE) for details.
