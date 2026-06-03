@@ -124,10 +124,11 @@ export default function ChatPanel({ documents }) {
             </button>
             <button
               onClick={() => setMode('accurate')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${mode === 'accurate' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all flex flex-col items-center justify-center ${mode === 'accurate' ? 'bg-navy-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
               title="More accurate answering with Cohere reranking"
             >
-              Accurate
+              <span>Accurate</span>
+              <span className="text-[9px] font-normal opacity-70 mt-0.5">(reranking)</span>
             </button>
           </div>
 
